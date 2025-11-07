@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Física Industrial">
+    <title>Simulador de Física Industrial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+```
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        overflow-x: hidden;
+    }
+
+    .container {
+        max-width: 100%;
+        padding: 16px;
+    }
+
+    .header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .header p {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+    }
+
+    .tab {
+        flex: 1;
+        min-width: 100px;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.3);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        white-space: nowrap;
+    }
+
+    .tab.active {
+        background: white;
+        color: #667eea;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .canvas-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    canvas {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        background: #1f2937;
+        display: block;
+        touch-action: none;
+    }
+
+    .controls {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .button-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .btn {
+        padding: 14px 20px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:active {
+        transform: scale(0.95);
+    }
+
+    .btn-secondary {
+        background: #f3f4f6;
+        color: #1f2937;
+    }
+
+    .btn-secondary:active {
+        background: #e5e7eb;
+    }
+
+    .slider-group {
+        margin-bottom: 20px;
+    }
+
+    .slider-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .slider-group input[type="range"] {
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: #e5e7eb;
+        outline: none;
+        -webkit-appearance: none;
+    }
+
+    .slider-group input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    }
+
+    .info-panel {
+        background: rgba(59, 130, 246, 0.1);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 16px;
+        display: none;
+    }
+
+    .info-panel.show {
+        display: block;
+    }
+
+    .info-panel h3 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 12px;
+    }
+
+    .info-panel p {
+        font-size: 13px;
+        color: #4b5563;
+        margin-bottom: 8px;
+        line-height: 1.5;
+    }
+
+    .status-bar {
+        background: rgba(16, 185, 129, 0.15);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: #065f46;
+        text-align: center;
+    }
+
+    .emoji {
+        font-size: 20px;
+        margin-right: 8px;
+    }
+
+    @media (max-width: 380px) {
+        .header h1 {
+            font-size: 20px;
+        }
+        
+        .btn {
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+    }
+</style>
+```
+
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Física Industrial</h1>
+            <p>Simulaciones interactivas</p>
+        </div>
+
+```
+    <div class="tabs">
+        <button class="tab active" data-sim="conveyor">🏭 Banda</button>
+        <button class="tab" data-sim="collision">💥 Choques</button>
+        <button class="tab" data-sim="crane">🏗️ Grúa</button>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="status-bar" id="statusBar">
+        <span class="emoji">⏸️</span>
+        <span id="statusText">Presiona Iniciar para comenzar</span>
+    </div>
+
+    <div class="controls">
+        <div class="button-group">
+            <button class="btn btn-primary" id="playBtn">
+                <span id="playIcon">▶️</span>
+                <span id="playText">Iniciar</span>
+            </button>
+            <button class="btn btn-secondary" id="resetBtn">
+                🔄 Reiniciar
+            </button>
+        </div>
+
+        <div id="controlsContainer">
+            <!-- Se llenarán dinámicamente -->
+        </div>
+
+        <button class="btn btn-secondary" id="infoBtn" style="width: 100%;">
+            ℹ️ Ver Información Técnica
+        </button>
+
+        <div class="info-panel" id="infoPanel">
+            <!-- Se llenará dinámicamente -->
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let activeSimulation = 'conveyor';
+    let isPlaying = false;
+    let animationId = null;
+
+    // Configurar canvas responsivo
+    function resizeCanvas() {
+        const container = canvas.parentElement;
+        const width = container.clientWidth - 32;
+        canvas.width = width;
+        canvas.height = Math.min(width * 0.75, 400);
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Estados de simulación
+    let conveyorState = {
+        boxes: [],
+        beltSpeed: 50,
+        friction: 0.3,
+        time: 0
+    };
+
+    let collisionState = {
+        balls: [
+            { x: 80, y: canvas.height/2, vx: 60, vy: 0, mass: 2, radius: 15, color: '#3B82F6' },
+            { x: canvas.width - 80, y: canvas.height/2, vx: -40, vy: 20, mass: 3, radius: 18, color: '#EF4444' }
+        ],
+        restitution: 0.8
+    };
+
+    let craneState = {
+        angle: 45,
+        length: Math.min(canvas.width, canvas.height) * 0.3,
+        load: 50,
+        angularVelocity: 0,
+        isLifting: false
+    };
+
+    // Información técnica
+    const infoData = {
+        conveyor: {
+            title: '🏭 Banda Transportadora',
+            content: [
+                '<strong>Principio:</strong> Conservación de momento lineal',
+                '<strong>Ecuación:</strong> p = mv',
+                '<strong>Aplicación:</strong> Las cajas aceleran por fricción hasta alcanzar la velocidad de la banda.',
+                '<strong>Industria:</strong> Logística, líneas de ensamblaje'
+            ]
+        },
+        collision: {
+            title: '💥 Choques Oblicuos',
+            content: [
+                '<strong>Principio:</strong> Conservación de momento en 2D',
+                '<strong>Ecuación:</strong> m₁v₁ + m₂v₂ = m₁v₁\' + m₂v₂\'',
+                '<strong>Coef. restitución:</strong> e = velocidad separación / velocidad aproximación',
+                '<strong>Industria:</strong> Molinos, sistemas de impacto'
+            ]
+        },
+        crane: {
+            title: '🏗️ Grúa Industrial',
+            content: [
+                '<strong>Principio:</strong> Cinemática de cuerpo rígido',
+                '<strong>Ecuación:</strong> τ = Iα',
+                '<strong>Momento inercia:</strong> I = mL²/3',
+                '<strong>Industria:</strong> Grúas, robots, excavadoras'
+            ]
+        }
+    };
+
+    // Dibujar simulaciones
+    function drawConveyor() {
+        // Banda
+        ctx.fillStyle = '#374151';
+        ctx.fillRect(0, canvas.height * 0.65, canvas.width, canvas.height * 0.15);
+
+        // Líneas de movimiento
+        const offset = (conveyorState.time * conveyorState.beltSpeed) % 30;
+        ctx.strokeStyle = '#6B7280';
+        ctx.lineWidth = 2;
+        for (let i = -30; i < canvas.width; i += 30) {
+            ctx.beginPath();
+            ctx.moveTo(i + offset, canvas.height * 0.67);
+            ctx.lineTo(i + offset + 15, canvas.height * 0.73);
+            ctx.stroke();
+        }
+
+        // Cajas
+        conveyorState.boxes.forEach(box => {
+            ctx.fillStyle = box.color;
+            ctx.fillRect(box.x, box.y, box.width, box.height);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${box.mass.toFixed(1)}kg`, box.x + box.width/2, box.y + box.height/2 + 3);
+        });
+
+        // Info
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Velocidad: ${conveyorState.beltSpeed.toFixed(0)} px/s`, 10, 20);
+        ctx.fillText(`Fricción: ${conveyorState.friction.toFixed(2)}`, 10, 35);
+    }
+
+    function drawCollision() {
+        // Bordes
+        ctx.strokeStyle = '#4B5563';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+
+        // Bolas
+        collisionState.balls.forEach(ball => {
+            ctx.fillStyle = ball.color;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Vector velocidad
+            ctx.strokeStyle = '#FCD34D';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(ball.x, ball.y);
+            ctx.lineTo(ball.x + ball.vx * 0.3, ball.y + ball.vy * 0.3);
+            ctx.stroke();
+
+            // Masa
+            ctx.fillStyle = '#fff';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${ball.mass}kg`, ball.x, ball.y + 4);
+        });
+
+        // Info
+        const totalMomentumX = collisionState.balls.reduce((sum, b) => sum + b.mass * b.vx, 0);
+        const totalMomentumY = collisionState.balls.reduce((sum, b) => sum + b.mass * b.vy, 0);
+        const totalMomentum = Math.sqrt(totalMomentumX ** 2 + totalMomentumY ** 2);
+
+        ctx.fillStyle = '#fff';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Momento: ${totalMomentum.toFixed(1)}`, 10, 20);
+        ctx.fillText(`e: ${collisionState.restitution}`, 10, 35);
+    }
+
+    function drawCrane() {
+        const baseX = canvas.width / 2;
+        const baseY = canvas.height * 0.8;
+        const angle = (craneState.angle * Math.PI) / 180;
+        const endX = baseX + Math.cos(angle) * craneState.length;
+        const endY = baseY - Math.sin(angle) * craneState.length;
+
+        // Base
+        ctx.fillStyle = '#6B7280';
+        ctx.fillRect(baseX - 20, baseY, 40, 30);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(baseX - 20, baseY, 40, 30);
+
+        // Brazo
+        ctx.strokeStyle = '#3B82F6';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(baseX, baseY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        // Articulación
+        ctx.fillStyle = '#1F2937';
+        ctx.beginPath();
+        ctx.arc(baseX, baseY, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#000';
+        ctx.stroke();
+
+        // Carga
+        ctx.fillStyle = '#EF4444';
+        ctx.fillRect(endX - 15, endY - 8, 30, 30);
+        ctx.strokeStyle = '#000';
+        ctx.strokeRect(endX - 15, endY - 8, 30, 30);
+
+        // Info
+        ctx.fillStyle = '#fff';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Ángulo: ${craneState.angle.toFixed(1)}°`, 10, 20);
+        ctx.fillText(`Carga: ${craneState.load}kg`, 10, 35);
+    }
+
+    // Actualizar simulaciones
+    function updateConveyor() {
+        conveyorState.boxes = conveyorState.boxes.map(box => ({
+            ...box,
+            x: box.x + conveyorState.beltSpeed * 0.016,
+            vx: box.vx + (conveyorState.beltSpeed - box.vx) * conveyorState.friction * 0.016
+        })).filter(box => box.x < canvas.width + 50);
+
+        if (Math.random() < 0.015 && conveyorState.boxes.length < 4) {
+            conveyorState.boxes.push({
+                x: -40,
+                y: canvas.height * 0.55,
+                vx: 0,
+                width: 30,
+                height: 30,
+                mass: Math.random() * 3 + 1,
+                color: `hsl(${Math.random() * 360}, 70%, 60%)`
+            });
+        }
+
+        conveyorState.time += 0.016;
+    }
+
+    function updateCollision() {
+        collisionState.balls = collisionState.balls.map(ball => {
+            let { x, y, vx, vy } = ball;
+
+            x += vx * 0.016;
+            y += vy * 0.016;
+
+            if (x - ball.radius < 0 || x + ball.radius > canvas.width) {
+                vx *= -collisionState.restitution;
+                x = x < canvas.width/2 ? ball.radius : canvas.width - ball.radius;
+            }
+            if (y - ball.radius < 0 || y + ball.radius > canvas.height) {
+                vy *= -collisionState.restitution;
+                y = y < canvas.height/2 ? ball.radius : canvas.height - ball.radius;
+            }
+
+            return { ...ball, x, y, vx, vy };
+        });
+
+        // Colisiones entre bolas
+        for (let i = 0; i < collisionState.balls.length; i++) {
+            for (let j = i + 1; j < collisionState.balls.length; j++) {
+                const ball1 = collisionState.balls[i];
+                const ball2 = collisionState.balls[j];
+
+                const dx = ball2.x - ball1.x;
+                const dy = ball2.y - ball1.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < ball1.radius + ball2.radius) {
+                    const angle = Math.atan2(dy, dx);
+                    const sin = Math.sin(angle);
+                    const cos = Math.cos(angle);
+
+                    const vx1 = ball1.vx * cos + ball1.vy * sin;
+                    const vy1 = ball1.vy * cos - ball1.vx * sin;
+                    const vx2 = ball2.vx * cos + ball2.vy * sin;
+                    const vy2 = ball2.vy * cos - ball2.vx * sin;
+
+                    const m1 = ball1.mass;
+                    const m2 = ball2.mass;
+                    const newVx1 = ((m1 - m2) * vx1 + 2 * m2 * vx2) / (m1 + m2);
+                    const newVx2 = ((m2 - m1) * vx2 + 2 * m1 * vx1) / (m1 + m2);
+
+                    ball1.vx = newVx1 * cos - vy1 * sin;
+                    ball1.vy = vy1 * cos + newVx1 * sin;
+                    ball2.vx = newVx2 * cos - vy2 * sin;
+                    ball2.vy = vy2 * cos + newVx2 * sin;
+
+                    const overlap = ball1.radius + ball2.radius - distance;
+                    ball1.x -= (overlap / 2) * cos;
+                    ball1.y -= (overlap / 2) * sin;
+                    ball2.x += (overlap / 2) * cos;
+                    ball2.y += (overlap / 2) * sin;
+                }
+            }
+        }
+    }
+
+    function updateCrane() {
+        const torque = craneState.isLifting ? -0.5 : 0.3;
+        const momentOfInertia = craneState.length * craneState.length * craneState.load / 3;
+        const angularAcceleration = torque / momentOfInertia;
+
+        craneState.angularVelocity += angularAcceleration;
+        craneState.angularVelocity *= 0.98;
+
+        craneState.angle += craneState.angularVelocity;
+
+        if (craneState.angle < 10) {
+            craneState.angle = 10;
+            craneState.angularVelocity = 0;
+        } else if (craneState.angle > 170) {
+            craneState.angle = 170;
+            craneState.angularVelocity = 0;
+        }
+    }
+
+    // Loop de animación
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (isPlaying) {
+            switch(activeSimulation) {
+                case 'conveyor':
+                    updateConveyor();
+                    break;
+                case 'collision':
+                    updateCollision();
+                    break;
+                case 'crane':
+                    updateCrane();
+                    break;
+            }
+        }
+
+        switch(activeSimulation) {
+            case 'conveyor':
+                drawConveyor();
+                break;
+            case 'collision':
+                drawCollision();
+                break;
+            case 'crane':
+                drawCrane();
+                break;
+        }
+
+        animationId = requestAnimationFrame(animate);
+    }
+
+    // Controles UI
+    function updateControls() {
+        const container = document.getElementById('controlsContainer');
+        container.innerHTML = '';
+
+        switch(activeSimulation) {
+            case 'conveyor':
+                container.innerHTML = `
+                    <div class="slider-group">
+                        <label>Velocidad: ${conveyorState.beltSpeed.toFixed(0)} px/s</label>
+                        <input type="range" min="20" max="120" value="${conveyorState.beltSpeed}" id="speedSlider">
+                    </div>
+                    <div class="slider-group">
+                        <label>Fricción: ${conveyorState.friction.toFixed(2)}</label>
+                        <input type="range" min="0.1" max="0.9" step="0.1" value="${conveyorState.friction}" id="frictionSlider">
+                    </div>
+                `;
+                document.getElementById('speedSlider').addEventListener('input', (e) => {
+                    conveyorState.beltSpeed = Number(e.target.value);
+                    updateControls();
+                });
+                document.getElementById('frictionSlider').addEventListener('input', (e) => {
+                    conveyorState.friction = Number(e.target.value);
+                    updateControls();
+                });
+                break;
+            case 'collision':
+                container.innerHTML = `
+                    <div class="slider-group">
+                        <label>Coeficiente de restitución: ${collisionState.restitution.toFixed(2)}</label>
+                        <input type="range" min="0.1" max="1.0" step="0.1" value="${collisionState.restitution}" id="restitutionSlider">
+                    </div>
+                `;
+                document.getElementById('restitutionSlider').addEventListener('input', (e) => {
+                    collisionState.restitution = Number(e.target.value);
+                    updateControls();
+                });
+                break;
+            case 'crane':
+                container.innerHTML = `
+                    <div class="slider-group">
+                        <label>Carga: ${craneState.load} kg</label>
+                        <input type="range" min="10" max="100" value="${craneState.load}" id="loadSlider">
+                    </div>
+                    <button class="btn ${craneState.isLifting ? 'btn-primary' : 'btn-secondary'}" id="liftBtn" style="width: 100%; margin-top: 12px;">
+                        ${craneState.isLifting ? '⬇️ Bajar' : '⬆️ Levantar'}
+                    </button>
+                `;
+                document.getElementById('loadSlider').addEventListener('input', (e) => {
+                    craneState.load = Number(e.target.value);
+                    updateControls();
+                });
+                document.getElementById('liftBtn').addEventListener('click', () => {
+                    craneState.isLifting = !craneState.isLifting;
+                    updateControls();
+                });
+                break;
+        }
+    }
+
+    function updateInfo() {
+        const info = infoData[activeSimulation];
+        const panel = document.getElementById('infoPanel');
+        panel.innerHTML = `
+            <h3>${info.title}</h3>
+            ${info.content.map(p => `<p>${p}</p>`).join('')}
+        `;
+    }
+
+    function updateStatus() {
+        const statusText = document.getElementById('statusText');
+        const statusBar = document.getElementById('statusBar');
+        const emoji = statusBar.querySelector('.emoji');
+        
+        if (isPlaying) {
+            emoji.textContent = '▶️';
+            statusText.textContent = 'Simulación en ejecución';
+            statusBar.style.background = 'rgba(16, 185, 129, 0.15)';
+            statusBar.style.color = '#065f46';
+        } else {
+            emoji.textContent = '⏸️';
+            statusText.textContent = 'Simulación pausada';
+            statusBar.style.background = 'rgba(249, 115, 21, 0.15)';
+            statusBar.style.color = '#9a3412';
+        }
+    }
+
+    function reset() {
+        isPlaying = false;
+        switch(activeSimulation) {
+            case 'conveyor':
+                conveyorState = { boxes: [], beltSpeed: 50, friction: 0.3, time: 0 };
+                break;
+            case 'collision':
+                collisionState = {
+                    balls: [
+                        { x: 80, y: canvas.height/2, vx: 60, vy: 0, mass: 2, radius: 15, color: '#3B82F6' },
+                        { x: canvas.width - 80, y: canvas.height/2, vx: -40, vy: 20, mass: 3, radius: 18, color: '#EF4444' }
+                    ],
+                    restitution: 0.8
+                };
+                break;
+            case 'crane':
+                craneState = {
+                    angle: 45,
+                    length: Math.min(canvas.width, canvas.height) * 0.3,
+                    load: 50,
+                    angularVelocity: 0,
+                    isLifting: false
+                };
+                break;
+        }
+        updateControls();
+        updateStatus();
+    }
+
+    // Event listeners
+    document.getElementById('playBtn').addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        const playIcon = document.getElementById('playIcon');
+        const playText = document.getElementById('playText');
+        
+        if (isPlaying) {
+            playIcon.textContent = '⏸️';
+            playText.textContent = 'Pausar';
+        } else {
+            playIcon.textContent = '▶️';
+            playText.textContent = 'Iniciar';
+        }
+        updateStatus();
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', reset);
+
+    document.getElementById('infoBtn').addEventListener('click', () => {
+        const panel = document.getElementById('infoPanel');
+        panel.classList.toggle('show');
+    });
+
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            active
+```
