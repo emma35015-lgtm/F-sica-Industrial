@@ -757,5 +757,25 @@
         tab.addEventListener('click', () => {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            active
+            activeSimulation = tab.dataset.sim;
+            isPlaying = false;
+            document.getElementById('playIcon').textContent = '▶️';
+            document.getElementById('playText').textContent = 'Iniciar';
+            document.getElementById('infoPanel').classList.remove('show');
+            reset();
+            updateControls();
+            updateInfo();
+            updateStatus();
+        });
+    });
+
+    // Inicializar
+    updateControls();
+    updateInfo();
+    updateStatus();
+    animate();
+</script>
 ```
+
+</body>
+</html>
